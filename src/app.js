@@ -11,11 +11,26 @@ const { generateSitemap } = require("./controllers/blog.controller");
 const app = express();
 
 app.use(helmet());
+const allowedOrigins = [
+  "http://localhost:3000",
+  "http://localhost:5173",
+  "https://cms-admin-lemon.vercel.app",
+  "https://giakaa-landing-site.vercel.app",
+];
+
 app.use(
   cors({
-    origin: ["http://localhost:3000", "https://cms-admin-lemon.vercel.app"],
+    origin: (origin, callback) => {
+      if (!origin) {
+        return callback(null, true);
+      }
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      return callback(new Error("Not allowed by CORS"));
+    },
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"]
+    allowedHeaders: ["Content-Type", "Authorization"],
   }),
 );
 app.options("*", cors());
