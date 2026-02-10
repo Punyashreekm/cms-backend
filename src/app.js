@@ -18,12 +18,7 @@ const allowedOrigins = [
   "https://giakaa-landing-site.vercel.app",
 ];
 
-app.use(
-  cors({
-    origin: allowedOrigins,
-  }),
-);
-app.options("*", cors());
+app.use(cors());
 app.use(express.json({ limit: "1mb" }));
 
 app.get("/health", (req, res) => {
