@@ -9,46 +9,38 @@ const heroRoutes = require("./routes/hero.routes");
 const { errorHandler } = require("./middlewares/error.middleware");
 const { generateSitemap } = require("./controllers/blog.controller");
 
-connectDB();
+const startServer = async () => {
+  try {
+    await connectDB();
 
-const app = express();
+    const app = express();
 
-app.use(cors());
-app.use(helmet());
-app.use(express.json({ limit: "1mb" }));
+    app.use(cors());
+    app.use(helmet());
+    app.use(express.json({ limit: "1mb" }));
 
-app.get("/health", (req, res) => {
-  res.status(200).json({ status: "ok" });
-});
+    app.get("/health", (req, res) => {
+      res.status(200).json({ status: "ok" });
+    });
 
-app.get("/api/sitemap.xml", generateSitemap);
-app.use("/api/blogs", blogRoutes);
-app.use("/api/hero", heroRoutes);
+    app.get("/api/sitemap.xml", generateSitemap);
+    app.use("/api/blogs", blogRoutes);
+    app.use("/api/hero", heroRoutes);
 
-const serveFrontend = process.env.SERVE_FRONTEND === "true";
-if (serveFrontend) {
-  const publicRoot = path.resolve(__dirname, "../../frontend/out");
-  const adminRoot = path.resolve(__dirname, "../../admin/out");
+    app.use(errorHandler);
+    app.get("/", (req, res) => {
+      res.send("API is running...");
+    });
 
-  app.use(express.static(publicRoot));
-  app.use("/admin", express.static(adminRoot));
+    const PORT = process.env.PORT || 5000;
 
-  app.get("/admin/*", (req, res) => {
-    res.sendFile(path.join(adminRoot, "index.html"));
-  });
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  } catch (error) {
+    console.error(`Failed to start server: ${error.message}`);
+    process.exit(1);
+  }
+};
 
-  app.get("*", (req, res) => {
-    res.sendFile(path.join(publicRoot, "index.html"));
-  });
-}
-
-app.use(errorHandler);
-app.get("/", (req, res) => {
-  res.send("API is running...");
-});
-
-const PORT = process.env.PORT || 5000;
-
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+startServer();
